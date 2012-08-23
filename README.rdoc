@@ -1,0 +1,5 @@
+paul_diagnostic
+
+This is an engine gem for Paul's diagnostic tool written by Andrew Kim.
+
+The diagnostic page can be accessed via /diagnostic. 

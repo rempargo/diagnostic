@@ -1,0 +1,16 @@
+<% provide(:title, "Diagnostic") %>
+
+<h1>Diagnostic</h1>
+
+<ul>
+<li>Rails Environment: <%= @rails_environment %></li>
+<li>Rails Version: <%= @rails_version %></li>
+<li>Ruby Version: <%= @ruby_version %></li>
+<li>Database Adapter: <%= @database_adapter %></li>
+<li>Loaded Gems:
+	<ul>
+		<% @gems.each do |y| %>
+			<li><%= "#{y.name} #{y.version}" %></li>
+		<% end %>
+	</ul>
+</li>
