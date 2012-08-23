@@ -1,0 +1,101 @@
+[14:44] == engineproblem [d57d6012@gateway/web/freenode/ip.213.125.96.18] has joined #refinerycms
+[14:44] <engineproblem> hello there
+[14:46] <engineproblem> I'm trying to load a simple plugin gem with a view, controller and route into my Refinery CMS application. The gem is loading fine but for some reason the application does not recognize the route nor does the view load. The gem/plugin/engine works absolutely fine with other apps. Is there something in Refinery that inhibits loading engines via gems? Thank you.
+[14:49] == flp [~chatzilla@188-193-130-170-dynip.superkabel.de] has joined #refinerycms
+[14:55] == gidogeek [~gidogeek@31.216.236.82] has joined #refinerycms
+[14:55] == mode/#refinerycms [+v gidogeek] by ChanServ
+[14:55] == benbruscella [~benbrusce@ppp118-209-24-55.lns20.mel4.internode.on.net] has joined #refinerycms
+[15:07] == keithpitty [~keithpitt@ppp121-44-137-148.lns20.syd7.internode.on.net] has quit [Quit: Could be time for a snooze]
+[15:12] == GoGoGarrett [~gogogarre@208.180.128.226] has joined #refinerycms
+[15:12] == mode/#refinerycms [+v GoGoGarrett] by ChanServ
+[15:14] == tdelam [~trevor@216.223.125.162] has joined #refinerycms
+[15:14] == mode/#refinerycms [+v tdelam] by ChanServ
+[15:15] == markoh [~maxx@89-212-113-159.static.t-2.net] has quit [Quit: markoh]
+[15:26] <uzsidoboz> i'm sure there isn't
+[15:26] <uzsidoboz> the rcms needs 4 or 5 gems even to work :)
+[15:27] <uzsidoboz> there must be something else
+[15:29] <engineproblem> not quite sure what it could be? creating a new rails app and loading the gem allows the route and view to load completely flawlessly....
+[15:31] <uzsidoboz> what is the route?
+[15:32] == flp [~chatzilla@188-193-130-170-dynip.superkabel.de] has quit [Quit: ChatZilla 0.9.88.2 [Firefox 14.0.1/20120713134347]]
+[15:33] <engineproblem> match '/diagnostic', to: 'diagnostic#diagnostic'
+[15:33] <engineproblem> its just a view, diagnostic.html.erb, with some instance variables in the controller
+[15:34] <uzsidoboz> rake routes ?
+[15:34] <uzsidoboz> is it visible there?
+[15:41] <engineproblem> nope
+[15:42] <engineproblem> ran a search through the many, many routes in a refinery app and there was no match
+[15:44] <uzsidoboz> wow
+[15:44] <uzsidoboz> strange
+[15:44] <uzsidoboz> i'm not en expert though so maybe there's something obvious :)
+[15:45] == sbeam [~quassel@pool-72-71-240-249.cncdnh.fast07.myfairpoint.net] has joined #refinerycms
+[15:46] == mode/#refinerycms [+v sbeam] by ChanServ
+[15:46] <engineproblem> haha argh! this is very puzzling.
+[15:46] <uzsidoboz> Gemfile?
+[15:46] <uzsidoboz> you forgot it?
+[15:46] <engineproblem> nope definitely loaded correctly..
+[15:46] <uzsidoboz> where is this gem?
+[15:47] <uzsidoboz> i give it a try
+[15:49] == gidogeek [~gidogeek@31.216.236.82] has quit [Quit: gidogeek]
+[15:56] <engineproblem> rubygems
+[15:56] <engineproblem> called paul_diagnostic
+[16:06] <uzsidoboz> hm
+[16:06] <uzsidoboz> it's in the rake routes
+[16:06] <uzsidoboz> but doesn't work
+[16:07] <uzsidoboz> very strange :)
+[16:10] <uzsidoboz> hmmm
+[16:10] <engineproblem> i know right?\
+[16:10] <uzsidoboz> i think i know what the problem is
+[16:11] <uzsidoboz> the refinery's mount for / happens before the gem's route config
+[16:11] <uzsidoboz> so the refinerycms catches the / before it even tries the /diagnostic
+[16:11] <uzsidoboz> that's my only idea
+[16:12] <engineproblem> hmm
+[16:12] <engineproblem> where is the mount located and any thoughts on how to bypass it?
+[16:12] <uzsidoboz> but it's strange..
+[16:12] <engineproblem> hmm..
+[16:13] <uzsidoboz> i have guesses only
+[16:13] <uzsidoboz> i'm quite new to this world :)
+[16:14] <uzsidoboz> ok...
+[16:14] <uzsidoboz> let's make a trick
+[16:14] <engineproblem> ahh
+[16:15] <uzsidoboz> put this line into the routes.rb before the mount
+[16:15] <uzsidoboz> match '/diagnostic', :to => 'diagnostic#diagnostic'
+[16:15] <uzsidoboz> it will work :)
+[16:15] <uzsidoboz> well.. copy the gem's route config before the mount
+[16:15] <uzsidoboz> :D
+[16:16] <uzsidoboz> i have no idea how to bypass this
+[16:16] <uzsidoboz> there must be a way
+[16:19] <engineproblem> ahh
+[16:19] <engineproblem> strange huh
+[16:20] <uzsidoboz> the application's routes.rb is loaded first it seems
+[16:20] <uzsidoboz> then come the gems'
+[16:20] <uzsidoboz> that's my only tip
+[16:22] <uzsidoboz> the mount should have an :skip option
+[16:25] <engineproblem> any idea where that would be in the config?
+[16:25] <uzsidoboz> ?
+[16:25] <uzsidoboz> what are you looking for?
+[16:27] == tmBrooke [~tmb@cpe-174-110-158-021.carolina.res.rr.com] has joined #refinerycms
+[16:27] <engineproblem> the :skip option, or anything that would allow us to run the correct route without having to manually add a line to the route file after gem installation
+[16:28] <uzsidoboz> there's no skip option
+[16:28] <uzsidoboz> the app's route.rb always runs first
+[16:28] <uzsidoboz> and since refinerycms grabs everything gem's routes are skipped
+[16:29] <engineproblem> ah i see what you're saying, it SHOULD have a skip option but it does not
+[16:30] <uzsidoboz> yep
+[16:31] == weswinham [~weswinham@64.132.81.70] has joined #refinerycms
+[16:31] <uzsidoboz> but as routing works there's no way to skip something
+[16:32] <engineproblem> ok so in other words
+[16:32] <engineproblem> Refinery's mount route just gobbles up everything in its path, and leaves no room for the rest of us...
+[16:32] <engineproblem> :)
+[16:32] <uzsidoboz> yep
+[16:33] <uzsidoboz> it's because of the slugs
+[16:33] <uzsidoboz> there's no route for /about
+[16:33] <uzsidoboz> it's an unmatched path
+[16:34] <engineproblem> so in other words if you want to have routes in refinery you have to list them before the mount no matter what correct?
+[16:34] <uzsidoboz> yep
+[16:34] <engineproblem> OK
+[16:34] <uzsidoboz> it's lame, yea
+[16:34] <engineproblem> i don't think theres a way to do this with a gem....
+[16:34] <uzsidoboz> but it's rails not refinery
+[16:35] <uzsidoboz> if don't know after mounting a path is there a way to tell the routing to keep looking
+[16:36] <uzsidoboz> but i don't think so
+[16:38] <engineproblem> ok.
+[16:38] <engineproblem> thanks man this has been very helpful!
+[16:39] <uzsidoboz> you're welcome
