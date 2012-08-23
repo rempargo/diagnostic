@@ -1,5 +1,9 @@
-paul_diagnostic
-
-This is an engine gem for Paul's diagnostic tool written by Andrew Kim.
+This is an engine gem for Paul's diagnostic tool "paul_diagnostic" written by Andrew Kim.
 
 The diagnostic page can be accessed via /diagnostic. 
+
+NOTE FOR REFINERY APPS: The 'mount Refinery::Core::Engine' line in the routes.rb file of a Refinery CMS application gobbles up everything in its path, leaving no room for gem routes which are loaded after. Therefore, the line 
+
+match '/diagnostic', to: 'diagnostic#diagnostic'
+
+must be inserted BEFORE the mount occurs in the applications routes.rb file if running Refinery CMS. (in general, any route must be named before the mount in a Refinery app, and I do not think this is possible in a gem.)
